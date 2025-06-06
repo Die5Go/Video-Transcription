@@ -1,14 +1,31 @@
 from wordcloud import WordCloud
-import matplotlib.pyplot as plt
 from PIL import Image
+import matplotlib.pyplot as plt
 import os
+import re
+import nltk
+from nltk.corpus import stopwords
+
+# Garante que as stopwords estejam disponíveis
+nltk.download("stopwords", quiet=True)
+stopwords_pt = set(stopwords.words("portuguese"))
+
+def limpar_texto(texto: str):
+    """
+    Remove pontuação, coloca em minúsculas e filtra stopwords.
+    """
+    texto_limpo = re.sub(r"[^\w\s]", "", texto.lower())
+    palavras = texto_limpo.split()
+    palavras_filtradas = [p for p in palavras if p not in stopwords_pt]
+    return " ".join(palavras_filtradas)
 
 def gerar_nuvem_de_texto(texto, caminho_saida, largura=800, altura=400, bgcolor='white'):
     """
     Gera nuvem de palavras de um texto único e salva como imagem PNG.
     Retorna também o objeto PIL.Image.
     """
-    wc = WordCloud(width=largura, height=altura, background_color=bgcolor).generate(texto)
+    texto_processado = limpar_texto(texto)
+    wc = WordCloud(width=largura, height=altura, background_color=bgcolor).generate(texto_processado)
     wc.to_file(caminho_saida)
     return Image.open(caminho_saida)
 
