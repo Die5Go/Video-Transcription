@@ -19,3 +19,28 @@ Interface simples via Streamlit
 - Ainda sem resumo automático do conteúdo
 
 ---
+
+## Como executar o projeto
+
+### 1. Clone o repositório e instale as dependências
+
+git clone https://github.com/Die-5-Go/Video-Transcription.git
+cd Video-Transcription
+python -m venv venv
+venv\Scripts\activate  # Ou use `source venv/bin/activate` no Linux/Mac
+pip install -r requirements.txt
+
+### 2. Instale o FFmpeg com o Chocolatey
+
+Se não tiver o Chocolatey instalado, siga as instruções em: https://chocolatey.org/install
+Como administrador no PowerShell, digite: choco install ffmpeg
+
+### 3. Configure a API da AssemblyAI
+
+Crie uma conta em: https://www.assemblyai.com/
+Copie sua chave de API
+Substitua no arquivo transcrever.py
+
+### 4. Execute a aplicação
+
+python -m streamlit run main.py
