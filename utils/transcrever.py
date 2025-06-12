@@ -1,8 +1,12 @@
 import assemblyai as aai
 import os
 
-
-aai.settings.api_key = os.getenv("ASSEMBLYAI_API_KEY")
+ASSEMBLYAI_API_KEY = os.getenv("ASSEMBLYAI_API_KEY")
+if not ASSEMBLYAI_API_KEY:
+    print("Erro: Chave de API ASSEMBLYAI_API_KEY não encontrada no arquivo .env")
+    exit()
+    
+aai.settings.api_key = ASSEMBLYAI_API_KEY
 
 def transcrever_audio(audio_path="data/audio.mp3", saida_base="output/"):
     """

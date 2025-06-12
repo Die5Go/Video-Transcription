@@ -1,57 +1,59 @@
 import os
 import google.generativeai as genai
-from dotenv import load_dotenv
 
-# Carrega as variáveis de ambiente do arquivo .env
-load_dotenv()
+def carregar_transcricao(caminho="output/transcricao_diarizada.txt"):
+    if not os.path.exists(caminho):
+        raise FileNotFoundError(f"Arquivo de transcrição não encontrado: {caminho}")
+    with open(caminho, "r", encoding="utf-8") as f:
+        return f.read()
 
-# Configura a API Key do Google Gemini
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-if not GOOGLE_API_KEY:
-    print("Erro: Chave de API GOOGLE_API_KEY não encontrada no arquivo .env")
-    exit()
-genai.configure(api_key=GOOGLE_API_KEY)
+def preparar_contexto(transcricao, metadados):
+    contexto = f"""Informações do vídeo:
+- Título: {metadados.get('titulo', 'N/A')}
+- Canal: {metadados.get('canal', 'N/A')}
+- Data de publicação: {metadados.get('data_publicacao', 'N/A')}
+- Duração: {metadados.get('duracao_segundos', 0)} segundos
+- Visualizações: {metadados.get('visualizacoes', 'N/A')}
+- Descrição: {metadados.get('descricao', '')}
 
-def ask_gemini_about_transcription():
-    transcription_dir = r"C:\Users\Gabs\Desktop\OPENAI"
-    transcription_file = "transcricao.txt"
-    full_path = os.path.join(transcription_dir, transcription_file)
+Transcrição completa:
+{transcricao}
+"""
+    return contexto
 
-    if not os.path.exists(full_path):
-        print(f"Erro: O arquivo de transcrição '{full_path}' não foi encontrado.")
+def perguntar_ao_gemini(metadados, model_id="gemini-1.5-flash"):
+    from dotenv import load_dotenv
+    load_dotenv()
+
+    api_key = os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        print("❌ Erro: GOOGLE_API_KEY não definida no arquivo .env")
         return
+
+    genai.configure(api_key=api_key)
 
     try:
-        with open(full_path, 'r', encoding='utf-8') as f:
-            transcription_content = f.read()
+        transcricao = carregar_transcricao()
     except Exception as e:
-        print(f"Erro ao ler o arquivo de transcrição: {e}")
+        print(f"❌ Erro ao carregar transcrição: {e}")
         return
 
-    print("Transcrição carregada com sucesso.\n")
+    contexto = preparar_contexto(transcricao, metadados)
+    model = genai.GenerativeModel(model_id)
 
-    # Configura o modelo Gemini
-    model = genai.GenerativeModel('gemini-1.5-flash') # Ou 'gemini-1.5-flash' se preferir
-
+    print("✅ Pronto para perguntas! Digite 'sair' para encerrar.")
     while True:
-        user_prompt = input("\nDigite sua pergunta sobre a transcrição (ou 'sair' para finalizar): ")
-        if user_prompt.lower() == 'sair':
+        pergunta = input("\n🔎 Sua pergunta: ").strip()
+        if pergunta.lower() == "sair":
             break
-
-        if not user_prompt.strip():
-            print("Por favor, digite uma pergunta válida.")
+        if not pergunta:
             continue
 
+        prompt = f"{contexto}\n\nAgora, com base nas informações acima, responda:\n{pergunta}"
+
         try:
-            # Constrói o prompt para o Gemini
-            prompt_for_gemini = f"Baseado na seguinte transcrição, responda à pergunta: '{user_prompt}'\n\nTranscrição:\n{transcription_content}"
-
-            response = model.generate_content(prompt_for_gemini)
-            print("\nResposta do Gemini:")
-            print(response.text)
+            resposta = model.generate_content(prompt)
+            print("\n📘 Resposta do Gemini:\n")
+            print(resposta.text)
         except Exception as e:
-            print(f"Erro ao interagir com o Gemini: {e}")
-            print("Pode ser um problema de conexão, chave de API inválida, ou o prompt foi muito longo/complexo.")
-
-if _name_ == "_main_":
-    ask_gemini_about_transcription()
+            print(f"⚠️ Erro na consulta ao Gemini: {e}")
