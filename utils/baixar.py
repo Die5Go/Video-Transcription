@@ -1,32 +1,45 @@
-import yt_dlp
 import os
+import yt_dlp
 
-def baixar_audio_do_youtube(url, nome_saida="data/audio"):
+def baixar_audio_do_youtube(url, output_path="data/audio"):
     """
-    Tenta baixar o áudio do YouTube e extrai metadados.
-    Se falhar com erro de login/cookies, retorna None para tratamento posterior.
+    Tenta baixar o áudio do YouTube, extrai metadados e previne o erro de extensão dupla (.mp3.mp3).
+
+    Args:
+        url (str): O URL do vídeo do YouTube.
+        output_path (str): O caminho base para salvar o arquivo. A função garante que a extensão
+                           .mp3 seja aplicada corretamente, mesmo que o caminho já a contenha.
+                           Exemplo: "data/audio" ou "data/audio.mp3" resultarão em "data/audio.mp3".
     """
+    # --- PREVENÇÃO DO ERRO .mp3.mp3 ---
+    # Garante que estamos trabalhando com o caminho base, sem a extensão, para o yt-dlp.
+    nome_base, _ = os.path.splitext(output_path)
+    
+    # Define o caminho final esperado, que sempre terá a extensão .mp3 correta.
+    caminho_final_mp3 = f"{nome_base}.mp3"
 
-    os.makedirs(os.path.dirname(nome_saida), exist_ok=True)
+    # Garante que o diretório de destino exista.
+    os.makedirs(os.path.dirname(nome_base), exist_ok=True)
 
-    if os.path.exists(nome_saida + ".mp3"):
+    # Verifica se o arquivo final já existe e tenta removê-lo para garantir uma nova versão.
+    if os.path.exists(caminho_final_mp3):
         try:
-            os.remove(nome_saida + ".mp3")
+            os.remove(caminho_final_mp3)
         except PermissionError:
-            raise RuntimeError(f"O arquivo {nome_saida}.mp3 está aberto em outro programa. Feche-o e tente novamente.")
+            # Erro mais claro para o usuário do Streamlit.
+            raise RuntimeError(f"O arquivo {caminho_final_mp3} está aberto em outro programa. Feche-o e tente novamente.")
 
+    # Opções do yt-dlp. O caminho do ffmpeg foi removido para maior portabilidade.
     ydl_opts = {
         'format': 'bestaudio/best',
-        'ffmpeg_location': 'C:/ProgramData/chocolatey/lib/ffmpeg/tools/ffmpeg/bin',
-        'outtmpl': nome_saida,
+        'outtmpl': nome_base,  # Usa o nome base SEM extensão. yt-dlp adicionará a correta.
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
             'preferredquality': '192',
         }],
-        'overwrites': True,
+        'noplaylist': True, # Garante que baixe apenas o vídeo, não a playlist inteira.
         'quiet': True,
-        'skip_download': False,
     }
 
     try:
@@ -34,19 +47,19 @@ def baixar_audio_do_youtube(url, nome_saida="data/audio"):
             info = ydl.extract_info(url, download=True)
     except yt_dlp.utils.DownloadError as e:
         erro_str = str(e).lower()
-        if "sign in to confirm you're not a bot" in erro_str or "cookies" in erro_str:
-            print("🔒 Este vídeo exige autenticação. Será necessário usar cookies ou recorrer a outro método.")
-            return None
+        # Tratamento de erro mais específico para o Streamlit.
+        if "sign in" in erro_str or "cookies" in erro_str or "age-restricted" in erro_str:
+            print(f"🔒 Falha no download: {e}")
+            raise ConnectionError("Este vídeo pode ser privado, ter restrição de idade ou exigir login. O download automático falhou.")
         else:
-            raise e
+            raise e  # Lança outros erros de download para depuração.
 
-    caminho_final = f"{nome_saida}.mp3"
-    if not os.path.exists(caminho_final):
-        raise FileNotFoundError(f"Falha ao localizar o áudio em {caminho_final}")
+    if not os.path.exists(caminho_final_mp3):
+        raise FileNotFoundError(f"Falha crítica: o arquivo de áudio não foi encontrado em {caminho_final_mp3} após o download.")
 
     metadados = {
-        "audio_path": caminho_final,
-        "titulo": info.get("title", ""),
+        "audio_path": caminho_final_mp3,
+        "titulo": info.get("title", "Título não encontrado"),
         "descricao": info.get("description", ""),
         "canal": info.get("uploader", ""),
         "data_publicacao": info.get("upload_date", ""),

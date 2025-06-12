@@ -36,7 +36,7 @@ if usar_youtube and video_url:
         nuvens_locutores = gerar_nuvens_por_locutor(falas_por_locutor)
 
     st.success("Transcrição concluída.")
-    st.download_button("⬇️ Baixar Transcrição Geral", open("output/transcricao_diarizada.txt", "rb"), file_name="transcricao_diarizada.txt")
+    st.download_button("⬇️ Baixar Transcrição Geral", open("output/transcricao.txt", "rb"), file_name="transcricao.txt")
 
     for arquivo in os.listdir("output"):
         if arquivo.startswith("Speaker_") and arquivo.endswith(".txt"):
