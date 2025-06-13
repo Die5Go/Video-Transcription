@@ -6,7 +6,6 @@ import re
 import nltk
 from nltk.corpus import stopwords
 
-# Garante que as stopwords estejam disponíveis
 nltk.download("stopwords", quiet=True)
 stopwords_pt = set(stopwords.words("portuguese"))
 
