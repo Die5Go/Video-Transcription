@@ -1,34 +1,24 @@
-import os
 import google.generativeai as genai
-from dotenv import load_dotenv
 
-def configurar_ia():
+# Removido: import os, from dotenv import load_dotenv
+
+def configurar_ia(api_key: str): # A chave agora é um argumento obrigatório
     """Carrega a chave da API e configura o modelo. Retorna o modelo ou None se falhar."""
-    load_dotenv()
-    api_key = os.getenv("GOOGLE_API_KEY")
+    # Removido: load_dotenv() e os.getenv()
+    
     if not api_key:
-        # Em vez de printar e sair, vamos retornar um erro que o Streamlit pode mostrar
-        raise ValueError("Chave de API GOOGLE_API_KEY não encontrada. Configure o arquivo .env.")
+        raise ValueError("A chave da API do Google não foi fornecida.")
+        
     genai.configure(api_key=api_key)
     return genai.GenerativeModel('gemini-1.5-flash')
 
+# A função analisar_texto_com_ia não precisa de nenhuma alteração.
 def analisar_texto_com_ia(modelo, transcricao: str, metadados: str, pergunta: str) -> str:
-    """
-    Usa o modelo de IA configurado para responder a uma pergunta com base na transcrição.
-
-    Args:
-        modelo: O objeto do modelo GenerativeModel já configurado.
-        transcricao: O texto completo da transcrição a ser analisado.
-        pergunta: A pergunta do usuário.
-
-    Returns:
-        A resposta gerada pela IA como uma string.
-    """
+    # ... (código existente aqui, sem nenhuma mudança) ...
     if not pergunta.strip():
         return "Por favor, digite uma pergunta válida."
 
     try:
-        # O prompt é mais eficaz se dermos um contexto claro para a IA
         prompt_completo = f"""
         Você é um assistente especializado em analisar transcrições.
         Com base exclusivamente na transcrição fornecida abaixo e os metadados (quando tiver), responda à pergunta do usuário.
