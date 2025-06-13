@@ -1,20 +1,16 @@
 import assemblyai as aai
 import os
 
-# Removido: from dotenv import load_dotenv
-
-# A chave agora é o primeiro argumento da função
 def transcrever_audio(api_key: str, audio_path="data/audio.mp3", saida_base="output/"):
     """
     Transcreve o áudio usando AssemblyAI e separa por locutor (diarização).
     """
-    # Removido: load_dotenv() e os.getenv()
+
     if not api_key:
         raise ValueError("A chave da API da AssemblyAI não foi fornecida.")
         
-    aai.settings.api_key = api_key # Usa a chave recebida como argumento
+    aai.settings.api_key = api_key
 
-    # O resto da função continua exatamente igual...
     config = aai.TranscriptionConfig(
         speaker_labels=True,
         entity_detection=True,
@@ -24,7 +20,7 @@ def transcrever_audio(api_key: str, audio_path="data/audio.mp3", saida_base="out
     os.makedirs(saida_base, exist_ok=True)
     print("Transcrevendo o áudio com AssemblyAI (versão simplificada)...")
     transcription = transcriber.transcribe(audio_path, config=config)
-    # ... (todo o resto do seu código aqui, sem nenhuma mudança)
+    
     if transcription.error:
         raise Exception(f"Erro na transcrição com AssemblyAI: {transcription.error}")
     falas_por_locutor = {}

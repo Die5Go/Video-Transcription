@@ -1,10 +1,7 @@
 import google.generativeai as genai
 
-# Removido: import os, from dotenv import load_dotenv
-
-def configurar_ia(api_key: str): # A chave agora é um argumento obrigatório
+def configurar_ia(api_key: str):
     """Carrega a chave da API e configura o modelo. Retorna o modelo ou None se falhar."""
-    # Removido: load_dotenv() e os.getenv()
     
     if not api_key:
         raise ValueError("A chave da API do Google não foi fornecida.")
@@ -12,9 +9,7 @@ def configurar_ia(api_key: str): # A chave agora é um argumento obrigatório
     genai.configure(api_key=api_key)
     return genai.GenerativeModel('gemini-1.5-flash')
 
-# A função analisar_texto_com_ia não precisa de nenhuma alteração.
 def analisar_texto_com_ia(modelo, transcricao: str, metadados: str, pergunta: str) -> str:
-    # ... (código existente aqui, sem nenhuma mudança) ...
     if not pergunta.strip():
         return "Por favor, digite uma pergunta válida."
 
